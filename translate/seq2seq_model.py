@@ -1,20 +1,3 @@
-# Copyright 2015 The TensorFlow Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
-
-"""Sequence-to-sequence model with an attention mechanism."""
-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -130,9 +113,6 @@ class Seq2SeqModel(object):
         if num_layers > 1:
             cell = tf.contrib.rnn.MultiRNNCell([single_cell() for _ in range(num_layers)])
 
-            # The seq2seq function: we use embedding for the input and attention.
-        # 返回outputs state
-
         # Feeds for inputs.
         self.encoder_inputs = []
         self.decoder_inputs = []
@@ -184,18 +164,18 @@ class Seq2SeqModel(object):
                 softmax_loss_function=softmax_loss_function)
 
         # Gradients and SGD update operation for training the model.
-        params = tf.trainable_variables()
+        params = tf.trainable_variables()  # s 所有要训练的数据
         if not forward_only:
-            self.gradient_norms = []
-            self.updates = []
-            opt = tf.train.GradientDescentOptimizer(self.learning_rate)
-            for b in xrange(len(buckets)):  # 不是bucket_size
-                gradients = tf.gradients(self.losses[b], params)
+            self.gradient_norms = []  # 用来统计所有的gradient_norm
+            self.updates = []  # 存储update
+            opt = tf.train.GradientDescentOptimizer(self.learning_rate)  # 实施梯度下降的动作
+            for b in xrange(len(buckets)):  # 有2/4 种bucket
+                gradients = tf.gradients(self.losses[b], params)  # 计算梯度
                 clipped_gradients, norm = tf.clip_by_global_norm(gradients,
                                                                  max_gradient_norm)  # 返回两个对应的值
-                self.gradient_norms.append(norm)
+                self.gradient_norms.append(norm)  # 存梯度范式
                 self.updates.append(opt.apply_gradients(
-                    zip(clipped_gradients, params), global_step=self.global_step))
+                    zip(clipped_gradients, params), global_step=self.global_step))  # 存更新
 
         self.saver = tf.train.Saver(tf.global_variables())
 
